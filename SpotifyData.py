@@ -1,13 +1,13 @@
 import sys, os, json
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QSizePolicy, QGridLayout
-from PyQt5.QtCore import Qt
-
+from PyQt5.QtCore import Qt, QMimeData
 
 class DragAndDrop(QWidget):
     def __init__(self):
         super().__init__()
         #class variable
-        self.filePath = "";
+        self.filePath = ""
+        self.hasData = False
         #window variable
         self.resize(400,400)
         self.setAcceptDrops(True)
@@ -22,13 +22,16 @@ class DragAndDrop(QWidget):
         self.label.setAlignment(Qt.AlignCenter)
         if isValid == 0:
             self.label.setText("Drag the folder here")
-            self.label.setStyleSheet('''QLabel{border: 4px dashed #dddddd}''')
+            self.label.setStyleSheet('''QLabel{border: 4px dashed #AAAAAA}''')
         elif isValid == 1:
             self.label.setText("File Detected")
-            self.label.setStyleSheet('''QLabel{border: 4px dashed #1DB954}''')
+            self.label.setStyleSheet('''QLabel{border: 4px dashed #9300ff}''')
         elif isValid == 2:
             self.label.setText("Listening History NOT Detected...Try again")
             self.label.setStyleSheet('''QLabel{border: 4px dashed #ff0000}''')
+        elif isValid == 3:
+            self.label.setText("Streaming History Detected, You can close this window now")
+            self.label.setStyleSheet('''QLabel{border: 4px dashed #1DB954}''')
         self.layout.addWidget(self.label, 0, 0)
         self.setLayout(self.layout)
 
@@ -36,34 +39,57 @@ class DragAndDrop(QWidget):
         for i in reversed(range(self.layout.count())):
             self.layout.itemAt(i).widget().setParent(None)
 
+    def hasStreamingHistory(self):
+        for fileName in os.listdir(self.filePath):
+            if "StreamingHistory" in fileName:
+                return True
+        return False
+
     def dragEnterEvent(self, event):
         self.set_background(1)
-        event.accept()
+        if event.mimeData().hasUrls:
+            event.accept()
+        else:
+            event.ignore()
 
     def dragLeaveEvent(self, event):
         self.set_background(0)
 
     def dragMoveEvent(self, event):
         self.set_background(1)
+        if event.mimeData().hasUrls:
+            event.accept()
+        else:
+            event.ignore()
 
     def dropEvent(self, event):
-        self.set_background(2)
+        if event.mimeData().hasUrls:
+            self.filePath = event.mimeData().urls()[0].toLocalFile()
+            if self.hasStreamingHistory():
+                self.set_background(3)
+                self.hasData = True
+                event.accept()
+            else:
+                self.set_background(2)
+                self.hasData = False
+                event.ignore()
 
 app = QApplication(sys.argv)
-
 win = DragAndDrop()
 win.show()
-sys.exit(app.exec_())
+app.exec_()
 
-"""
-path = os.getcwd()  # get the current working dir
-"""
+if not win.hasData:
+    print("No filePath found, Exiting")
+    sys.exit()
+
+path = win.filePath  # get the current working dir
 
 # reading all streaming history files from the given directory
 data = []
 for i in os.listdir(path):
-    if os.path.isfile(os.path.join(path, i)) and "StreamingHistory" in i:
-        with open(i, 'r', encoding='utf8') as f:
+    if i.startswith('StreamingHistory') and i.endswith('.json'):
+        with open(os.path.join(path,i), 'r', encoding='utf8') as f:
             data = data + json.load(f)
 
 playHistoryDict2020 = {}
@@ -86,7 +112,7 @@ output1 = [(v, k) for k, v in playHistoryDict2020.items()]
 output1.sort(reverse=True)
 i = 1
 
-file1 = open("Kc.txt", 'w', encoding='utf8')
+file1 = open("history.txt", 'w', encoding='utf8')
 file1.write("*************Most listened art*******************\n")
 for v, k in output1:
     file1.write(str(i) + " " + str(k) + " " + str(v / 3600000) + " hours\n")
