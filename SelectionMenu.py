@@ -4,6 +4,12 @@ from PyQt5.QtCore import QDate
 
 
 class SelectionWindow(object):
+    def __init__(self):
+        self.topACount = 100
+        self.topAAll = False;
+        self.topSCount = 100
+        self.topSAll = False;
+        self.topSFromA = 1
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -179,4 +185,32 @@ class SelectionWindow(object):
         self.telda.setText(_translate("MainWindow", "          ~"))
 
     def clicked(self):
+
+        if self.aTop10.isChecked():
+            self.topACount = 10
+        if self.aTop100.isChecked():
+            self.topACount = 100
+        if self.aAll.isChecked():
+            self.topAAll = True
+        if self.aCustom.text() != '':
+            self.topACount = int(self.aCustom.text())
+
+        if self.sTop10.isChecked():
+            self.topSCount = 10
+        if self.sTop100.isChecked():
+            self.topSCount = 100
+        if self.sAll.isChecked():
+            self.topSAll = True
+        if self.sCustom.text() != '':
+            self.topSCount = int(self.sCustom.text())
+        if self.aTopSongs.isChecked():
+            if self.asTop1.isChecked():
+                self.topSFromA = 1;
+            if self.asTop3.isChecked():
+                self.topSFromA = 3;
+            if self.asTop5.isChecked():
+                self.topSFromA = 5;
+
+        print(self.topACount, self.topSCount, self.topSFromA)
+
         self.fLabel.setText("Success...Close this window to generate your History")

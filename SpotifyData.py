@@ -1,6 +1,6 @@
 from DragAndDropFile import DragAndDrop
 from SelectionMenu import SelectionWindow
-from Parser import parseAll
+from Parser import parseAll, filterDate
 import sys, os, json
 from PyQt5.QtWidgets import QApplication, QMainWindow
 
@@ -22,19 +22,21 @@ ui.setupUi(win2)
 win2.show()
 selectionApp.exec_()
 
-print(ui.aCustom.text())
-print(ui.aCustom.hasAcceptableInput())
-print(type(ui.aCustom.text()))
-
 
 # reading all streaming history files from the given directory
 allData = parseAll(win1.filePath)
 
-artistDict = {}  # key: artistName value = [top, most streamed Day, top songs[]]
-songDict = {}  # key: songName value = [top, most streamed day]
+# filter the date base on the time frame set
+if ui.setTime.isChecked():
+    allData = filterDate(allData, ui.startTime.date().getDate(), ui.endTime.date().getDate())
 
-th = 0
+# creating dictionary for artists and songs
+artistDict = {}  # key = artistName : value = [{total minutes}, {mostStreamedDay}, {minutesOnMSD}]
+songDict = {}  # key = songName : value = [{total times played}, {mostStreamedDay}, {minutesOnMSD}, {artistName}]
 
+
+
+"""
 for i in data:
     if i["endTime"][0:4] == '2020':  # or i["endTime"][0:4] == '2019':
         th = th + int(i['msPlayed'])
@@ -72,3 +74,4 @@ for v, k in output2:
 
 file1.write("\n***********totally hours listened: " + str(th / 3600000))
 file1.close()
+"""
