@@ -39,8 +39,8 @@ def removeTime(date):
 
 # stores the information of a artist
 class ArtistValue:
-    def __init__(self, minutesPlayed, mostPlayDate, mostPlayTime, currentDate, currentTime):
-        self.minutesPlayed = minutesPlayed
+    def __init__(self, msPlayed, mostPlayDate, mostPlayTime, currentDate, currentTime):
+        self.msPlayed = msPlayed
         self.mostPlayDate = mostPlayDate
         self.mostPlayTime = mostPlayTime
         self.currentDate = currentDate
@@ -49,30 +49,87 @@ class ArtistValue:
 
 # parse through all the data and pick out data that relate to Artist
 def parseArtist(data):
-    # key = artistName : value = object of artist
     artistData = {}
     for song in data:
-        if song.artistName in artistData.keys():
-            artistData[song.artistName].minutesPlayed += song.msPlayed
-            if removeTime(song.endTime) != artistData[song.artistName].currentDate:
-                if artistData[song.artistName].mostPlayTime < artistData[song.artistName].currentTime:
-                    artistData[song.artistName].mostPlayTime = artistData[song.artistName].currentTime
-                    artistData[song.artistName].mostPlayDate = artistData[song.artistName].currentDate
-                artistData[song.artistName].currentTime = song.msPlayed
-                artistData[song.artistName].currentDate = removeTime(song.endTime)
+        curArtistName = song['artistName']
+        ms = song['msPlayed']
+        et = song['endTime']
+        if curArtistName in artistData.keys():
+            artistData[curArtistName].msPlayed += ms
+            if removeTime(et) != artistData[curArtistName].currentDate:
+                if artistData[curArtistName].mostPlayTime < artistData[curArtistName].currentTime:
+                    artistData[curArtistName].mostPlayTime = artistData[curArtistName].currentTime
+                    artistData[curArtistName].mostPlayDate = artistData[curArtistName].currentDate
+                artistData[curArtistName].currentTime = ms
+                artistData[curArtistName].currentDate = removeTime(et)
             else:
-                artistData[song.artistName].currentTime += song.msPlayed
+                artistData[curArtistName].currentTime += ms
         else:
-            temp = ArtistValue(song.msPlayed, removeTime(song.endTime), song.msPlayed, removeTime(song.endTime), song.msPlayed)
-            artistData[song.artistName] = temp
+            temp = ArtistValue(ms, removeTime(et), ms, removeTime(et), ms)
+            artistData[curArtistName] = temp
+    return artistData
 
 
+# stores the information of a song
+class SongNode:
+    def __init__(self, timesPlayed=None, mostPlayDate=None, mostPlayTime=None,
+                 currentDate=None, currentCount=None, artistName=None):
+        self.timesPlayed = timesPlayed
+        self.mostPlayDate = mostPlayDate
+        self.mostPlayTime = mostPlayTime
+        self.currentDate = currentDate
+        self.currentCount = currentCount
+        self.artistName = artistName
+        self.nextNode = None
 
 
+class SLink:
+    def __init__(self):
+        self.startNode = None
 
 
+def parseSong(data):
+    songData = {}
+    for song in data:
+        curArtistName = song['artistName']
+        curSongName = song['trackName']
+        et = song['endTime']
+        if curSongName in songData.keys():
+            if song['msPlayed'] > 5000:
+                curNode = songData[curSongName].startNode
+                while curNode is not None:
+                    if curNode.artistName == curArtistName:
+                        curNode.timesPlayed += 1
+                        if removeTime(et) != curNode.currentDate:
+                            if curNode.mostPlayTime < curNode.currentCount:
+                                curNode.mostPlayTime = curNode.currentCount
+                                curNode.mostPlayDate = curNode.currentDate
+                            curNode.currentCount = 1
+                            curNode.currentDate = removeTime(et)
+                        else:
+                            curNode.currentCount += 1
+                        break
+                    if curNode.nextNode is None:
+                        temp = SongNode(1, removeTime(et), 1, removeTime(et), 1, curArtistName)
+                        curNode.nextNode = temp
+                        break
+                    curNode = curNode.nextNode
+        else:
+            songData[curSongName] = SLink()
+            temp = SongNode(1, removeTime(et), 1, removeTime(et), 1, curArtistName)
+            songData[curSongName].startNode = temp
+    return songData
 
 
-# def removeUnknowSongs(data):
-#     for songs in data:
-#         if songs.artistName == 'Unknown Artist'
+# calc the total time the user listened to Spotify
+def calcTotalTime(data):
+    msTotal = 0
+    for song in data:
+        msTotal += song['msPlayed']
+    return msTotal
+
+
+# delete all the Unknown Artists in the listening history
+def deleteUnknownArtists(data):
+    return [song for song in data if song['artistName'] is not 'Unknown Artist']
+

@@ -210,7 +210,4 @@ class SelectionWindow(object):
                 self.topSFromA = 3;
             if self.asTop5.isChecked():
                 self.topSFromA = 5;
-
-        print(self.topACount, self.topSCount, self.topSFromA)
-
         self.fLabel.setText("Success...Close this window to generate your History")

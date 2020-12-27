@@ -1,6 +1,6 @@
 from DragAndDropFile import DragAndDrop
 from SelectionMenu import SelectionWindow
-from Parser import parseAll, filterDate
+from Parser import parseAll, filterDate, parseArtist, parseSong, calcTotalTime, deleteUnknownArtists
 import sys, os, json
 from PyQt5.QtWidgets import QApplication, QMainWindow
 
@@ -24,17 +24,36 @@ selectionApp.exec_()
 
 
 # reading all streaming history files from the given directory
-allData = parseAll(win1.filePath)
+filePath = win1.filePath
+allData = parseAll(filePath)
 
 # filter the date base on the time frame set
 if ui.setTime.isChecked():
     allData = filterDate(allData, ui.startTime.date().getDate(), ui.endTime.date().getDate())
 
+# calculating the total listening time
+totalTime = calcTotalTime(allData)
+
+# remove all the unknown artists
+allData = deleteUnknownArtists(allData)
+
 # creating dictionary for artists and songs
-artistDict = {}  # key = artistName : value = [{total minutes}, {mostStreamedDay}, {minutesOnMSD}]
-songDict = {}  # key = songName : value = [{total times played}, {mostStreamedDay}, {minutesOnMSD}, {artistName}]
 
+# the value of artistDict are objects of artistData
+# which has members: msPlayed, mostPlayDate, mostPlayTime, currentDate, currentTime
+artistDict = parseArtist(allData)
 
+# the value of songDict is a linked list of songNodes
+# songNode has members: timesPlayed, mostPlayDate, mostPlayTime, currentDate, currentCount, artistName
+songDict = parseSong(allData)
+
+for i, j in songDict.items():
+    print(i, j.startNode.artistName, "|" , j.startNode.timesPlayed, j.startNode.mostPlayDate, j.startNode.mostPlayTime)
+
+createPath = os.path.join(filePath, "_History.txt")
+f = open(createPath, "w", encoding='utf8')
+
+f.close()
 
 """
 for i in data:
