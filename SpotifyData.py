@@ -1,8 +1,9 @@
 from DragAndDropFile import DragAndDrop
 from SelectionMenu import SelectionWindow
-from Parser import parseAll, filterDate, parseArtist, parseSong, calcTotalTime, deleteUnknownArtists
-import sys, os, json
+from Parser import parseAll, filterDate, parseArtist, parseSong, calcTotalTime, deleteUnknownArtists, splitByMonth
+import sys, os
 from PyQt5.QtWidgets import QApplication, QMainWindow
+from Output import sortArtist, sortSongs
 
 
 # Main
@@ -37,22 +38,46 @@ totalTime = calcTotalTime(allData)
 # remove all the unknown artists
 allData = deleteUnknownArtists(allData)
 
+# if the user request by monthly data
+aMonthlyData = []
+sMonthlyData = []
+if ui.aByMonth.isChecked() or ui.sByMonth.isChecked():
+    aMonthlyData = splitByMonth(allData)
+    sMonthlyData = splitByMonth(allData)
+
 # creating dictionary for artists and songs
 
 # the value of artistDict are objects of artistData
 # which has members: msPlayed, mostPlayDate, mostPlayTime, currentDate, currentTime
-artistDict = parseArtist(allData)
+artistDict = {}
+
+if ui.aByMonth.isChecked():
+    for month in aMonthlyData:
+        month[1] = parseArtist(month[1])
+else:
+    artistDict = parseArtist(allData)
+
+
+for i,j in artistDict.items():
+    print(i,j)
+    break
 
 # the value of songDict is a linked list of songNodes
 # songNode has members: timesPlayed, mostPlayDate, mostPlayTime, currentDate, currentCount, artistName
-songDict = parseSong(allData)
+songList = []
 
-for i, j in songDict.items():
-    print(i, j.startNode.artistName, "|" , j.startNode.timesPlayed, j.startNode.mostPlayDate, j.startNode.mostPlayTime)
+if ui.sByMonth.isChecked():
+    for month in sMonthlyData:
+        month[1] = parseSong(month[1])
+else:
+    songList = parseSong(allData)
+
+for month in songList:
+    print(month)
+    break
 
 createPath = os.path.join(filePath, "_History.txt")
 f = open(createPath, "w", encoding='utf8')
-
 f.close()
 
 """

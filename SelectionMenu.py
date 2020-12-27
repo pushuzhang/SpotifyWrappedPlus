@@ -185,7 +185,6 @@ class SelectionWindow(object):
         self.telda.setText(_translate("MainWindow", "          ~"))
 
     def clicked(self):
-
         if self.aTop10.isChecked():
             self.topACount = 10
         if self.aTop100.isChecked():
@@ -211,3 +210,4 @@ class SelectionWindow(object):
             if self.asTop5.isChecked():
                 self.topSFromA = 5;
         self.fLabel.setText("Success...Close this window to generate your History")
+        self.FinishB.setText("Update")

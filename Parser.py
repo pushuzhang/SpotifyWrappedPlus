@@ -1,4 +1,5 @@
 import os, json
+from itertools import groupby
 
 
 # parse through all the json files and read all to the same dictionary
@@ -19,6 +20,15 @@ def filterDate(data, start, end):
             continue
         data = [song for song in data if not dateWithin(tempDate, start, end)]
     return data
+
+
+def getMonthYear(song):
+    date = removeTime(song['endTime']).split('-')
+    return date[0] + date[1]
+
+
+def splitByMonth(data):
+    return [[key, list(group)] for key, group in groupby(data, getMonthYear)]
 
 
 # check if the date is within the range of start and end
@@ -71,53 +81,41 @@ def parseArtist(data):
 
 
 # stores the information of a song
-class SongNode:
-    def __init__(self, timesPlayed=None, mostPlayDate=None, mostPlayTime=None,
-                 currentDate=None, currentCount=None, artistName=None):
+class SongValue:
+    def __init__(self, timesPlayed, mostPlayDate, mostPlayTime, currentDate, currentCount, artistName, songName):
         self.timesPlayed = timesPlayed
         self.mostPlayDate = mostPlayDate
         self.mostPlayTime = mostPlayTime
         self.currentDate = currentDate
         self.currentCount = currentCount
         self.artistName = artistName
-        self.nextNode = None
+        self.songName = songName
 
-
-class SLink:
-    def __init__(self):
-        self.startNode = None
 
 
 def parseSong(data):
-    songData = {}
+    songData = []
     for song in data:
         curArtistName = song['artistName']
         curSongName = song['trackName']
         et = song['endTime']
-        if curSongName in songData.keys():
-            if song['msPlayed'] > 5000:
-                curNode = songData[curSongName].startNode
-                while curNode is not None:
-                    if curNode.artistName == curArtistName:
-                        curNode.timesPlayed += 1
-                        if removeTime(et) != curNode.currentDate:
-                            if curNode.mostPlayTime < curNode.currentCount:
-                                curNode.mostPlayTime = curNode.currentCount
-                                curNode.mostPlayDate = curNode.currentDate
-                            curNode.currentCount = 1
-                            curNode.currentDate = removeTime(et)
-                        else:
-                            curNode.currentCount += 1
-                        break
-                    if curNode.nextNode is None:
-                        temp = SongNode(1, removeTime(et), 1, removeTime(et), 1, curArtistName)
-                        curNode.nextNode = temp
-                        break
-                    curNode = curNode.nextNode
-        else:
-            songData[curSongName] = SLink()
-            temp = SongNode(1, removeTime(et), 1, removeTime(et), 1, curArtistName)
-            songData[curSongName].startNode = temp
+        if song['msPlayed'] > 5000:
+            found = False
+            for s in songData:
+                if (s.songName == curSongName) and (s.artistName == curArtistName):
+                    found = True
+                    s.timesPlayed += 1
+                    if removeTime(et) != s.currentDate:
+                        if s.mostPlayTime < s.currentCount:
+                            s.mostPlayTime = s.currentCount
+                            s.mostPlayDate = s.currentDate
+                        s.currentCount = 1
+                        s.currentDate = removeTime(et)
+                    else:
+                        s.currentCount += 1
+            if not found:
+                temp = SongValue(1, removeTime(et), 1, removeTime(et), 1, curArtistName, curSongName)
+                songData.append(temp)
     return songData
 
 
@@ -131,5 +129,5 @@ def calcTotalTime(data):
 
 # delete all the Unknown Artists in the listening history
 def deleteUnknownArtists(data):
-    return [song for song in data if song['artistName'] is not 'Unknown Artist']
+    return [song for song in data if song['artistName'] != 'Unknown Artist']
 
