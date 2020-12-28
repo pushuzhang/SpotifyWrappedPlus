@@ -2,7 +2,7 @@ import os
 from PyQt5.QtWidgets import QLabel, QSizePolicy, QGridLayout, QWidget
 from PyQt5.QtCore import Qt
 
-
+# create a responsive drop box that allow use to drag in their data
 class DragAndDrop(QWidget):
     def __init__(self):
         super().__init__()
