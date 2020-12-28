@@ -87,7 +87,7 @@ class SongValue:
         self.songName = songName
 
 
-
+# read in the data and store songs in to list of songValue objects
 def parseSong(data):
     songData = []
     for song in data:

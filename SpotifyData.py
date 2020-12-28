@@ -1,9 +1,12 @@
-from DragAndDropFile import DragAndDrop
-from SelectionMenu import SelectionWindow
-from Parser import parseAll, filterDate, parseArtist, parseSong, calcTotalTime, deleteUnknownArtists, splitByMonth
-import sys, os
+import os
+import sys
+
 from PyQt5.QtWidgets import QApplication, QMainWindow
+
+from DragAndDropFile import DragAndDrop
 from Output import sortArtist, sortSongs, monthToString, writeArtistData, writeSongData
+from Parser import parseAll, filterDate, parseArtist, parseSong, calcTotalTime, deleteUnknownArtists, splitByMonth
+from SelectionMenu import SelectionWindow
 
 # Main
 inputApp = QApplication(sys.argv)
@@ -73,9 +76,10 @@ if ui.topA.isChecked():
 songList = []
 
 if ui.sByMonth.isChecked():
-    for month in sMonthlyData:
-        tempSong = parseSong(month[1])
-        month[1] = sortSongs(tempSong)
+    if not ui.aByMonth.isChecked():
+        for month in sMonthlyData:
+            tempSong = parseSong(month[1])
+            month[1] = sortSongs(tempSong)
 else:
     tempSong = parseSong(allData)
     songList = sortSongs(tempSong)
@@ -91,11 +95,11 @@ if ui.topA.isChecked():
             writeArtistData(aMonth[1], ui, f, sMonth[1])
     else:
         writeArtistData(artistDict, ui, f, songList)
-
-if ui.sByMonth.isChecked():
-    for month in sMonthlyData:
-        print(monthToString(month[0]))
-        writeSongData(month[1], ui, f)
-else:
-    writeSongData(songList, ui, f)
+if ui.topS.isChecked():
+    if ui.sByMonth.isChecked():
+        for month in sMonthlyData:
+            print(monthToString(month[0]))
+            writeSongData(month[1], ui, f)
+    else:
+        writeSongData(songList, ui, f)
 f.close()
