@@ -90,16 +90,20 @@ f = open(createPath, "w", encoding='utf8')
 
 if ui.topA.isChecked():
     if ui.aByMonth.isChecked():
+        f.write("***TOP ARTISTS***\n")
         for aMonth, sMonth in zip(aMonthlyData, sMonthlyData):
-            print(monthToString(aMonth[0]))
+            f.write(monthToString(aMonth[0])+'\n')
             writeArtistData(aMonth[1], ui, f, sMonth[1])
+            f.write('\n')
     else:
         writeArtistData(artistDict, ui, f, songList)
 if ui.topS.isChecked():
     if ui.sByMonth.isChecked():
+        f.write("***TOP SONGS***\n")
         for month in sMonthlyData:
-            print(monthToString(month[0]))
+            f.write(monthToString(month[0])+'\n')
             writeSongData(month[1], ui, f)
+            f.write('\n')
     else:
         writeSongData(songList, ui, f)
 f.close()

@@ -23,28 +23,35 @@ def monthToString(month):
     return monthStrings[month[4:]] + ' ' + month[0:4]
 
 
+def msToHour(ms):
+    hours = int(ms / (1000 * 60 * 60))
+    minutes = (ms / (1000 * 60)) % 60
+    return '%d hours, %d minutes' % (hours, minutes)
+
+
 def writeArtistData(aData, ui, f, sData):
     count = 0
     for name, data in aData.items():
         # increment the counter and top when the desired artists are meet
         if not ui.topSAll:
             count += 1
-        print('name:', name, end=' ')
-        print('msPlayed:', data.msPlayed, end=' ')
+        f.write(name[:25].ljust(25) + '| ')
+        f.write(msToHour(data.msPlayed).ljust(21) + '| ')
         if ui.aMPD.isChecked():
-            print("MostPlayedDay On:", data.mostPlayDate, "you listened to ____ for", data.mostPlayTime, end=' ')
+            f.write(('You listened to ' + name[:15] + ' the most on: ' + data.mostPlayDate +
+                     ' for ' + msToHour(data.mostPlayTime)).ljust(85) + '| ')
         if ui.aTopSongs.isChecked():
             j = 0
             for song in sData:
                 if song.artistName == name:
-                    print(song.songName)
                     j += 1
+                    f.write(str(j) + '. ' + song.songName[:20] + ' ')
                 if j == ui.topSFromA:
                     break
-        print()
+        f.write('\n')
         if count == ui.topACount:
             break
-    print()
+    f.write('\n')
 
 
 def writeSongData(sData, ui, f):
@@ -52,21 +59,12 @@ def writeSongData(sData, ui, f):
     for song in sData:
         if not ui.topAAll:
             count += 1
-        print('name:', song.songName, end=' ')
-        print('timesPlayed: ', song.timesPlayed, end=' ')
+        f.write(song.songName[:25].ljust(25) + '| ')
+        f.write(str(song.timesPlayed).ljust(4) + 'times | ')
         if ui.sMDL.isChecked():
-            print("MostPlayedDay On:", song.mostPlayDate, "you listened to ____ for", song.mostPlayTime, end=' ')
-        print()
+            f.write('You listened to ' + song.songName[:15] + ' the most on: ' + song.mostPlayDate +
+                    ' for ' + str(song.mostPlayTime) + ' times')
+        f.write('\n')
         if count == ui.topSCount:
             break
-    print()
-
-
-
-
-
-
-
-
-
-
+    f.write('\n')
