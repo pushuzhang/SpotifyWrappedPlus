@@ -6,9 +6,9 @@ from PyQt5.QtCore import QDate
 class SelectionWindow(object):
     def __init__(self):
         self.topACount = 100
-        self.topAAll = False;
+        self.topAAll = False
         self.topSCount = 100
-        self.topSAll = False;
+        self.topSAll = False
         self.topSFromA = 1
 
     def setupUi(self, MainWindow):
@@ -193,7 +193,7 @@ class SelectionWindow(object):
             self.topAAll = True
         if self.aCustom.text() != '':
             self.topACount = int(self.aCustom.text())
-
+            self.topAAll = False
         if self.sTop10.isChecked():
             self.topSCount = 10
         if self.sTop100.isChecked():
@@ -202,12 +202,13 @@ class SelectionWindow(object):
             self.topSAll = True
         if self.sCustom.text() != '':
             self.topSCount = int(self.sCustom.text())
+            self.topSAll = False
         if self.aTopSongs.isChecked():
             if self.asTop1.isChecked():
-                self.topSFromA = 1;
+                self.topSFromA = 1
             if self.asTop3.isChecked():
-                self.topSFromA = 3;
+                self.topSFromA = 3
             if self.asTop5.isChecked():
-                self.topSFromA = 5;
+                self.topSFromA = 5
         self.fLabel.setText("Success...Close this window to generate your History")
         self.FinishB.setText("Update")

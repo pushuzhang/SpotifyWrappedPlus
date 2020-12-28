@@ -14,12 +14,7 @@ def parseAll(filePath):
 
 # remove all song history outside of set time frame
 def filterDate(data, start, end):
-    for song in data:
-        tempDate = removeTime(song['endTime']).split('-')
-        if dateWithin(tempDate, start, end):
-            continue
-        data = [song for song in data if not dateWithin(tempDate, start, end)]
-    return data
+    return [song for song in data if dateWithin(removeTime(song['endTime']).split('-'), start, end)]
 
 
 def getMonthYear(song):
@@ -47,7 +42,7 @@ def removeTime(date):
     return date.split()[0]
 
 
-# stores the information of a artist
+# stores the information of an artist
 class ArtistValue:
     def __init__(self, msPlayed, mostPlayDate, mostPlayTime, currentDate, currentTime):
         self.msPlayed = msPlayed

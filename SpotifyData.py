@@ -3,8 +3,7 @@ from SelectionMenu import SelectionWindow
 from Parser import parseAll, filterDate, parseArtist, parseSong, calcTotalTime, deleteUnknownArtists, splitByMonth
 import sys, os
 from PyQt5.QtWidgets import QApplication, QMainWindow
-from Output import sortArtist, sortSongs
-
+from Output import sortArtist, sortSongs, monthToString, writeArtistData, writeSongData
 
 # Main
 inputApp = QApplication(sys.argv)
@@ -22,7 +21,6 @@ ui = SelectionWindow()
 ui.setupUi(win2)
 win2.show()
 selectionApp.exec_()
-
 
 # reading all streaming history files from the given directory
 filePath = win1.filePath
@@ -47,20 +45,28 @@ if ui.aByMonth.isChecked() or ui.sByMonth.isChecked():
 
 # creating dictionary for artists and songs
 
+# artistDict is a dictionary
+# the key of artistDict are name of the artists
 # the value of artistDict are objects of artistData
 # which has members: msPlayed, mostPlayDate, mostPlayTime, currentDate, currentTime
+
+# when reading by monthly
+# monthly artist data is a list of tuples
+# each tuple consists of the month of the data and a artistDict
 artistDict = {}
 
-if ui.aByMonth.isChecked():
-    for month in aMonthlyData:
-        month[1] = parseArtist(month[1])
-else:
-    artistDict = parseArtist(allData)
-
-
-for i,j in artistDict.items():
-    print(i,j)
-    break
+# reading data by month / not by month then sort it
+if ui.topA.isChecked():
+    if ui.aByMonth.isChecked():
+        for month in aMonthlyData:
+            tempArtist = parseArtist(month[1])
+            month[1] = sortArtist(tempArtist)
+        for month in sMonthlyData:
+            tempSong = parseSong(month[1])
+            month[1] = sortSongs(tempSong)
+    else:
+        tempArtist = parseArtist(allData)
+        artistDict = sortArtist(tempArtist)
 
 # the value of songDict is a linked list of songNodes
 # songNode has members: timesPlayed, mostPlayDate, mostPlayTime, currentDate, currentCount, artistName
@@ -68,54 +74,28 @@ songList = []
 
 if ui.sByMonth.isChecked():
     for month in sMonthlyData:
-        month[1] = parseSong(month[1])
+        tempSong = parseSong(month[1])
+        month[1] = sortSongs(tempSong)
 else:
-    songList = parseSong(allData)
+    tempSong = parseSong(allData)
+    songList = sortSongs(tempSong)
 
-for month in songList:
-    print(month)
-    break
-
+# creating a history file with the the user's input data folder
 createPath = os.path.join(filePath, "_History.txt")
 f = open(createPath, "w", encoding='utf8')
+
+if ui.topA.isChecked():
+    if ui.aByMonth.isChecked():
+        for aMonth, sMonth in zip(aMonthlyData, sMonthlyData):
+            print(monthToString(aMonth[0]))
+            writeArtistData(aMonth[1], ui, f, sMonth[1])
+    else:
+        writeArtistData(artistDict, ui, f, songList)
+
+if ui.sByMonth.isChecked():
+    for month in sMonthlyData:
+        print(monthToString(month[0]))
+        writeSongData(month[1], ui, f)
+else:
+    writeSongData(songList, ui, f)
 f.close()
-
-"""
-for i in data:
-    if i["endTime"][0:4] == '2020':  # or i["endTime"][0:4] == '2019':
-        th = th + int(i['msPlayed'])
-        if i['artistName'] not in playHistoryDict2020.keys():
-            playHistoryDict2020[i['artistName']] = i['msPlayed']
-        if i['trackName'] not in mostPlaySong2020.keys():
-            mostPlaySong2020[i['trackName']] = 1
-        if int(i['msPlayed']) > 5000:
-            mostPlaySong2020[i['trackName']] = mostPlaySong2020[i['trackName']] + 1
-        playHistoryDict2020[i['artistName']] = playHistoryDict2020[i['artistName']] + i['msPlayed']
-
-output1 = [(v, k) for k, v in playHistoryDict2020.items()]
-output1.sort(reverse=True)
-i = 1
-
-file1 = open("history.txt", 'w', encoding='utf8')
-file1.write("*************Most listened art*******************\n")
-for v, k in output1:
-    file1.write(str(i) + " " + str(k) + " " + str(v / 3600000) + " hours\n")
-    if i >= 100:
-        break
-    i = i + 1
-
-file1.write("\n*************Most played songs:************\n")
-output2 = [(v, k) for k, v in mostPlaySong2020.items()]
-output2.sort(reverse=True)
-i = 1
-for v, k in output2:
-    if k == "Unknown Track":
-        continue
-    file1.write(str(i) + " " + str(k) + " " + str(v) + " times\n")
-    if i >= 100:
-        break
-    i = i + 1
-
-file1.write("\n***********totally hours listened: " + str(th / 3600000))
-file1.close()
-"""
