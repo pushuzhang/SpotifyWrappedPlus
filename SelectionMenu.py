@@ -12,7 +12,7 @@ class SelectionWindow(object):
         self.topSFromA = 1
 
     def setupUi(self, MainWindow):
-        MainWindow.setObjectName("MainWindow")
+        MainWindow.setObjectName("Selection Window")
         MainWindow.resize(380, 370)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -161,7 +161,7 @@ class SelectionWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Selection Window"))
         self.FinishB.setText(_translate("MainWindow", "Finish"))
         self.topA.setText(_translate("MainWindow", "Top Artists"))
         self.aTop10.setText(_translate("MainWindow", "Top10"))

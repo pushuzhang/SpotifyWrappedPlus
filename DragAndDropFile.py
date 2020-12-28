@@ -12,7 +12,7 @@ class DragAndDrop(QWidget):
         # window variable
         self.resize(350, 350)
         self.setAcceptDrops(True)
-        self.setWindowTitle("Take input file")
+        self.setWindowTitle("Drop Box")
         self.layout = QGridLayout()
         self.set_background(0)
 
